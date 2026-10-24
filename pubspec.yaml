@@ -1,0 +1,48 @@
+name: promptvault
+description: "探す・直す・コピペするを最速化する、オフライン完結型のLLMプロンプト管理アプリ"
+publish_to: 'none'
+
+# version+build。ストア申請ごとに build 番号を上げる。
+version: 1.0.0+1
+
+environment:
+  # Flutter 3.44.7 に同梱される Dart を対象にする。
+  sdk: ^3.12.0
+  flutter: '>=3.44.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # --- 状態管理 ---
+  flutter_riverpod: ^3.4.1
+
+  # --- ローカルDB（サーバー不要・永久無料） ---
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # --- フラグ類の簡易保存（isProUser など） ---
+  shared_preferences: ^2.3.5
+
+  # --- アプリ内課金（買い切り / 非消費型） ---
+  in_app_purchase: ^3.3.0
+
+  # --- 広告（Google AdMob 公式SDK） ---
+  google_mobile_ads: ^9.0.0
+
+  # --- バックアップファイルの書き出し ---
+  share_plus: ^12.0.2
+  path_provider: ^2.1.6
+
+  # --- バックアップファイルの読み込み（復元） ---
+  file_picker: ^11.0.2
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

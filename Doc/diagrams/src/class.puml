@@ -1,0 +1,146 @@
+@startuml class
+!include _style.iuml
+title クラス図 — PromptVault
+
+package "models" {
+  class Prompt {
+    + id : String
+    + title : String
+    + body : String
+    + tags : List<String>
+    + isPinned : bool
+    + usageCount : int
+    + createdAt : DateTime
+    + updatedAt : DateTime
+    --
+    + preview : String
+    + displayTitle : String
+    + copyWith(...) : Prompt
+    + toJson() / fromJson()
+  }
+  class PromptAdapter <<Hive TypeAdapter>> {
+    + read(BinaryReader) : Prompt
+    + write(BinaryWriter, Prompt)
+  }
+}
+
+package "core" {
+  class Entitlements <<immutable>> {
+    + isPro : bool
+    --
+    + variableForm = true
+    + exportBackup = true
+    + showAds = !isPro
+    + advancedVariables = isPro
+    + copyHistory = isPro
+    + importBackup = isPro
+  }
+  class PromptQuery <<utility>> {
+    + {static} apply(prompts, query, tags, sortMode)
+    + {static} filter(prompts, query, tags)
+    + {static} sort(prompts, mode)
+    + {static} parseTags(raw) : List<String>
+  }
+  enum SortMode {
+    recent（最近使った順）
+    usage（よく使う順）
+  }
+}
+
+package "services" {
+  class PlaceholderParser <<utility>> {
+    + {static} extract(text) : List<PromptVariable>
+    + {static} initialValues(vars) : Map
+    + {static} fill(text, values) : String
+    + {static} insert(text, offset, name) : InsertionResult
+  }
+  class PromptVariable {
+    + name : String
+    + choices : List<String>
+    + defaultValue : String
+    + token : String
+  }
+  class BackupService {
+    + buildJson(prompts) : String
+    + exportAndShare(prompts)
+    + parseJson(source) : List<Prompt>
+  }
+  interface PurchaseService {
+    + events : Stream<PurchaseEvent>
+    + initialize()
+    + buyPro()
+    + restorePurchases()
+  }
+  class IapPurchaseService
+  class StubPurchaseService
+  interface AdsService {
+    + initialize()
+    + preloadInterstitial()
+    + onRewardableAction()
+  }
+  class AdMobAdsService
+  class NoopAdsService
+  class InterstitialCadence {
+    + everyNActions = 4
+    + cooldown = 2min
+    + shouldShow(actionCount, lastShownAt, now) : bool
+  }
+}
+
+package "data" {
+  abstract class PromptStore {
+    + watch() : Stream<void>
+    + getAll() : List<Prompt>
+    + put(prompt) / putAll(prompts)
+    + delete(id) / clear()
+    + allTags() : List<String>
+    + restore(incoming, merge) : int
+  }
+  class PromptRepository {
+    - _box : Box<Prompt>
+    + {static} openBox()
+  }
+  class InMemoryPromptStore <<test>>
+  class CopyHistoryStore {
+    + load() : List<CopyHistoryEntry>
+    + add(entry)  // 最大 20 件・重複統合
+    + clear()
+  }
+  class CopyHistoryEntry {
+    + text : String
+    + sourceTitle : String
+    + copiedAt : DateTime
+  }
+}
+
+package "providers (Riverpod)" {
+  class PromptsNotifier <<Notifier>> {
+    + create(title, body, tags) : MutationOutcome
+    + update(prompt, ...) : MutationOutcome
+    + delete(id) / restoreSnapshot(prompts)
+    + togglePin(prompt) / markUsed(prompt)
+    + restore(prompts, merge) / deleteAll()
+    + seedIfFirstLaunch()
+  }
+  class ProNotifier <<Notifier>>
+  class CopyHistoryNotifier
+}
+
+PromptAdapter ..> Prompt
+PromptStore <|-- PromptRepository
+PromptStore <|-- InMemoryPromptStore
+PromptStore --> Prompt
+PurchaseService <|.. IapPurchaseService
+PurchaseService <|.. StubPurchaseService
+AdsService <|.. AdMobAdsService
+AdsService <|.. NoopAdsService
+AdMobAdsService --> InterstitialCadence
+PlaceholderParser ..> PromptVariable
+PromptQuery ..> SortMode
+PromptsNotifier --> PromptStore
+ProNotifier ..> PurchaseService : events を購読
+ProNotifier ..> Entitlements : 生成
+CopyHistoryNotifier --> CopyHistoryStore
+CopyHistoryStore --> CopyHistoryEntry
+BackupService ..> Prompt
+@enduml

@@ -1,0 +1,43 @@
+@startuml seq-edit-undo
+!include _style.iuml
+title シーケンス図② 保存と「元に戻す」— 確認ダイアログを出さない設計
+autonumber "<b>[0]"
+
+actor 利用者 as U
+participant "EditorScreen" as Ed
+participant "PromptsNotifier" as PN
+participant "PromptStore\n(Hive)" as Store
+participant "PromptListScreen" as List
+
+== 編集して保存 ==
+U -> Ed : 本文を編集・{{変数}} チップで挿入
+U -> Ed : 保存
+Ed -> PN : update(prompt, title, body, tags)
+alt タイトルも本文も空
+  PN --> Ed : MutationOutcome.blockedByEmptyContent
+  Ed --> U : 「タイトルか本文のどちらかを入力してください」
+else OK
+  PN -> Store : put(prompt.copyWith(updatedAt: now))
+  Store -->> PN : watch() 通知
+  PN --> Ed : ok
+  Ed --> U : pop() ＋ SnackBar「更新しました」[元に戻す]
+  opt 元に戻す
+    U -> PN : restoreSnapshot([original])
+    PN -> Store : put(original)
+  end
+end
+
+== 削除 ==
+U -> List : ⋮ →「削除」
+List -> PN : delete(id)
+PN -> Store : delete(id)
+List --> U : SnackBar「◯◯を削除しました」[元に戻す]（5 秒）
+opt 元に戻す
+  U -> PN : restoreSnapshot([prompt])
+  PN -> Store : put(prompt)
+end
+note over List
+  1 タップで消して 1 タップで戻せるほうが、
+  毎回ダイアログを挟むより速い（全件削除だけは確認あり＋取り消し可）
+end note
+@enduml

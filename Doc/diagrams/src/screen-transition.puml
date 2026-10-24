@@ -1,0 +1,36 @@
+@startuml screen-transition
+!include _style.iuml
+title 画面遷移図 — PromptVault
+hide empty description
+
+state "S01 プロンプト一覧（ホーム）" as S01
+state "S02 作成・編集" as S02
+state "S03 設定" as S03
+state "M01 変数入力シート" as M01
+state "M02 コピー履歴シート【Pro】" as M02
+state "M03 Pro 案内シート" as M03
+state "D01 変数を追加\n（カスタム名）" as D01
+state "D02 復元方法を選択" as D02
+state "D03 すべて削除の確認" as D03
+
+[*] --> S01 : 起動（初回はサンプル 3 件を投入）
+S01 --> S02 : 「＋新規」/ カード長押し / ⋮→編集
+S02 --> S01 : 保存（元に戻す付き）/ 戻る
+S02 --> D01 : 「カスタム」チップ
+S02 --> M03 : 選択肢・既定値の「詳細」
+S01 --> M01 : カードタップ（変数あり）
+M01 --> S01 : 置換してコピー / キャンセル
+S01 --> M02 : 履歴アイコン（Pro）
+S01 --> M03 : 履歴アイコン（Free）/ SnackBar「履歴に残す」
+M02 --> S01 : 再コピー
+S01 --> S03 : 設定アイコン
+S03 --> M03 : 「JSONから復元」（Free）
+S03 --> D02 : 「JSONから復元」（Pro）
+S03 --> D03 : すべてのプロンプトを削除
+M03 --> S03 : 「Proプランを購入」
+
+legend bottom
+  下部タブは置かず、一覧をホームに直結（縦の表示領域をタブバー 1 本分広げるため「発見」タブを廃止）。
+  一覧画面のその他の操作：検索（インクリメンタル・AND）、タグチップ（AND）、並び替え、ピン留め、⋮→複製／削除。
+endlegend
+@enduml

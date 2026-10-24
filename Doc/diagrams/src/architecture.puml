@@ -1,0 +1,66 @@
+@startuml architecture
+!include _style.iuml
+title システム構成図 — PromptVault
+
+node "スマートフォン（iOS / Android）" {
+  package "Flutter アプリ" {
+    package "UI  lib/ui" as UI {
+      component "PromptListScreen\n（ホーム）" as List
+      component "EditorScreen" as Editor
+      component "SettingsScreen" as Settings
+      component "ボトムシート\n変数入力 / 履歴 / Pro 案内" as Sheets
+      component "copy_flow.dart\n（コピー体験の一連の流れ）" as Copy
+    }
+    package "State  lib/providers (Riverpod 3)" as State {
+      component "PromptsNotifier" as PN
+      component "visiblePromptsProvider\n← 検索語・タグ・並び順" as VP
+      component "isProProvider\n→ entitlementsProvider" as Pro
+      component "CopyHistoryNotifier" as CH
+    }
+    package "Core  lib/core（純粋ロジック）" as Core {
+      component "Entitlements\nFree / Pro の機能差" as Ent
+      component "PromptQuery\n検索・並び替え" as Query
+    }
+    package "Services / Data" as Svc {
+      component "PlaceholderParser\n{{変数}} の解析・置換" as Parser
+      component "PromptStore（抽象）\n└ PromptRepository (Hive)" as Repo
+      component "CopyHistoryStore" as CHS
+      component "BackupService\n(JSON)" as Backup
+      component "PurchaseService（抽象）\n└ IapPurchaseService" as IAP
+      component "AdsService（抽象）\n└ AdMobAdsService / Noop" as AdsSvc
+    }
+  }
+  database "Hive box\n'prompts'" as Hive
+  database "SharedPreferences\nPro フラグ・履歴・並び順" as Prefs
+  component "クリップボード" as Clip
+}
+cloud "App Store / Google Play" as Store
+cloud "AdMob" as AdMob
+
+List --> VP
+List --> Copy
+Editor --> PN
+Settings --> Backup
+Copy --> Parser
+Copy --> Sheets
+Copy --> Clip
+Copy --> CH
+Copy --> AdsSvc
+VP --> Query
+VP --> PN
+PN --> Repo
+Repo --> Hive : 手書き TypeAdapter
+CH --> CHS
+CHS --> Prefs
+Pro --> Ent
+Pro --> Prefs
+Pro ..> IAP : 購入イベントを購読
+IAP --> Store
+AdsSvc --> AdMob : Free のみ
+
+note bottom of Repo
+  PromptStore / PurchaseService / AdsService はインターフェース。
+  テスト・非対応プラットフォーム・Pro ユーザーでは
+  インメモリ実装・スタブ・Noop 実装に差し替わる。
+end note
+@enduml

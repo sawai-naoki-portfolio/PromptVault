@@ -1,0 +1,51 @@
+@startuml seq-copy
+!include _style.iuml
+title シーケンス図① コピー（アプリの中核体験）
+autonumber "<b>[0]"
+
+actor 利用者 as U
+participant "PromptCard" as Card
+participant "copy_flow.dart\ncopyPromptToClipboard" as Flow
+participant "PlaceholderParser" as Parser
+participant "変数入力シート" as Sheet
+participant "Clipboard" as Clip
+participant "CopyHistoryNotifier" as Hist
+participant "PromptsNotifier" as PN
+participant "AdsService" as Ads
+
+U -> Card : カードをタップ
+Card -> Flow : copyPromptToClipboard(prompt)
+Flow -> Parser : extract(prompt.body)
+Parser --> Flow : List<PromptVariable>
+alt 変数あり
+  Flow -> Sheet : showVariableFillSheet(advanced: isPro)
+  note right of Sheet
+    Free：素のテキスト入力欄
+    Pro ：選択肢はチップ、既定値は入力済み
+    プレビューで置換結果を即時表示
+  end note
+  U -> Sheet : 値を入力 →「置換してコピー」
+  alt キャンセル
+    Sheet --> Flow : null
+    Flow --> U : コピーごと中止
+  else 確定
+    Sheet --> Flow : values
+    Flow -> Parser : fill(body, values)
+    Parser --> Flow : 置換後テキスト
+  end
+end
+Flow -> Clip : setData(text)
+opt Pro
+  Flow -> Hist : add(CopyHistoryEntry)\n最大 20 件・同一テキストは統合
+end
+Flow --> U : SnackBar「変数を置換してコピーしました」\n（Free は「履歴に残す」→ Pro 案内）
+Flow -> Ads : onRewardableAction()
+note right of Ads
+  クリップボードへ送った「後」に呼ぶ。
+  広告の読み込み状況がコピーの成否に影響しない。
+  4 回に 1 回 かつ 前回から 2 分以上で表示。
+  Pro は NoopAdsService なので何もしない。
+end note
+Flow -> PN : markUsed(prompt)
+PN -> PN : usageCount++（updatedAt は変えない）
+@enduml

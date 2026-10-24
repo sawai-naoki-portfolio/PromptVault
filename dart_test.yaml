@@ -1,0 +1,10 @@
+# スクリーンショット生成用のテストは通常のテスト実行から除外する。
+#
+# フォントのレンダリングは環境によって微妙に変わるため、
+# golden 比較を CI の合否に含めると壊れやすいテストになってしまう。
+# 生成は明示的に次のコマンドで行う:
+#
+#   flutter test --update-goldens --tags screenshots --run-skipped
+tags:
+  screenshots:
+    skip: 'README用スクリーンショットの生成専用（--tags screenshots --run-skipped で実行）'

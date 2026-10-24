@@ -1,0 +1,36 @@
+@startuml seq-purchase
+!include _style.iuml
+title シーケンス図④ Pro 購入と広告の停止
+autonumber "<b>[0]"
+
+actor 利用者 as U
+participant "AppBootstrap" as Boot
+participant "SettingsScreen /\nPro 案内シート" as UI
+participant "IapPurchaseService" as IAP
+participant "ストア\n(in_app_purchase)" as Store
+participant "ProNotifier\n(isProProvider)" as Pro
+database "SharedPreferences" as Prefs
+participant "adsServiceProvider" as AdsP
+
+Boot -> IAP : initialize()（起動をブロックしない）
+IAP -> Store : purchaseStream を購読・商品情報取得
+Pro -> IAP : events.listen()
+
+U -> UI : 「Proプランを購入」
+UI -> IAP : buyPro()
+IAP -> Store : buyNonConsumable(promptvault_pro)
+Store --> U : 決済シート
+U -> Store : 承認
+Store -> IAP : PurchaseDetails(purchased)
+IAP -> Store : completePurchase()
+IAP -> Boot : PurchaseEvent(purchased)
+Boot --> U : SnackBar「Proプランを購入しました」
+IAP -> Pro : PurchaseEvent(purchased)
+Pro -> Prefs : setBool(isProUser, true)
+Pro --> AdsP : isPro = true（watch）
+AdsP -> AdsP : NoopAdsService に差し替え
+note right of AdsP
+  Provider の依存関係で切り替わるため、
+  購入した瞬間にバナーもインタースティシャルも止まる
+end note
+@enduml

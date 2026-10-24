@@ -1,0 +1,47 @@
+@startuml seq-backup
+!include _style.iuml
+title シーケンス図③ JSON バックアップ（書き出しは全員・復元は Pro）
+autonumber "<b>[0]"
+
+actor 利用者 as U
+participant "SettingsScreen" as Set
+participant "BackupService" as BS
+participant "共有シート /\nFilePicker" as OS
+participant "Pro 案内シート" as Up
+participant "PromptsNotifier" as PN
+participant "PromptStore" as Store
+
+== 書き出し（Free / Pro） ==
+U -> Set : 「JSONで書き出し」
+Set -> BS : exportAndShare(prompts)
+BS -> BS : buildJson()\n{app, schemaVersion, exportedAt, count, prompts[]}
+BS -> OS : 一時ファイル promptvault-backup-YYYYMMDD-HHmm.json を共有
+OS --> U : 端末 / Google ドライブ等へ保存
+
+== 復元 ==
+U -> Set : 「JSONから復元」
+alt Free
+  Set -> Up : showProUpsellSheet(reason: restore)
+  Up --> U : 「機種変更のときに丸ごと戻せます」
+else Pro
+  Set -> OS : FilePicker で .json を選択
+  OS --> Set : 文字列
+  Set -> BS : parseJson(source)
+  alt 空 / JSON でない / 形式違い
+    BS --> Set : BackupParseException
+    Set --> U : エラーメッセージ
+  else OK
+    BS --> Set : List<Prompt>\n（ラッパー形式・配列のみ・旧カテゴリ形式に対応）
+    Set --> U : 復元方法を選択\n「追加（推奨）」/「置き換え」
+    U -> Set : 選択
+    Set -> PN : restore(prompts, merge)
+    PN -> Store : restore()
+    note right of Store
+      merge=true ：既存を残して追加。
+      　同一 ID は updatedAt が新しい方を残す
+      merge=false：既存を置き換える
+    end note
+    Set --> U : 「n 件を復元しました」
+  end
+end
+@enduml

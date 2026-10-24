@@ -1,0 +1,50 @@
+@startuml usecase
+!include _style.iuml
+title ユースケース図 — PromptVault
+left to right direction
+
+actor "利用者\n（LLM を日常的に使う人）" as User
+actor "クリップボード /\nChatGPT・Claude 等" as LLM
+actor "App Store /\nGoogle Play" as Store
+actor "AdMob" as Ads
+
+rectangle "PromptVault（オフライン完結）" {
+  usecase "プロンプトを保存する\n（タイトル・本文・タグ）" as UC1
+  usecase "{{変数}} を挿入する" as UC2
+  usecase "検索・タグで絞り込む" as UC3
+  usecase "並び替える\n（最近使った順 / よく使う順）" as UC4
+  usecase "ピン留めする" as UC5
+  usecase "1 タップでコピーする" as UC6
+  usecase "変数フォームで置換する" as UC7
+  usecase "選択肢・既定値を使う【Pro】" as UC8
+  usecase "コピー履歴から再コピー【Pro】" as UC9
+  usecase "削除・編集を取り消す" as UC10
+  usecase "JSON で書き出す" as UC11
+  usecase "JSON から復元する【Pro】" as UC12
+  usecase "Pro を購入 / 復元する" as UC13
+  usecase "広告を表示する（Free）" as UC14
+}
+
+User --> UC1
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC12
+User --> UC13
+UC2 .> UC1 : <<extend>>
+UC7 .> UC6 : <<include>>\n変数があるとき
+UC8 .> UC7 : <<extend>>
+UC14 .> UC6 : <<extend>>\n4 回に 1 回・2 分空ける
+UC6 --> LLM
+UC13 --> Store
+UC14 --> Ads
+
+legend bottom
+  保存件数・ピン留め・書き出し・変数フォームは Free でも無制限（ユーザーのデータを人質にしない）。
+  Pro（買い切り）の価値は「広告が消える」「入力がさらに速くなる」。
+endlegend
+@enduml
