@@ -1,6 +1,6 @@
 # PromptVault
 
-> 澤井直輝のポートフォリオ作品のひとつです（[作品一覧へ](https://github.com/sawai-naoki-portfolio/Portfolio)）。
+> 澤井直輝のポートフォリオ作品のひとつです（[作品一覧へ](https://github.com/sawai-naoki-portfolio)）。
 
 「探す・直す・コピペする」を最速化する、**オフライン完結型**の LLM プロンプト管理アプリ（Flutter / iOS・Android）。
 
