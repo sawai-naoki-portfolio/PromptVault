@@ -1,5 +1,7 @@
 # PromptVault
 
+[![Test](https://github.com/sawai-naoki-portfolio/PromptVault/actions/workflows/test.yml/badge.svg)](https://github.com/sawai-naoki-portfolio/PromptVault/actions/workflows/test.yml)
+
 > **ポートフォリオ作品**（[作品一覧へ](https://github.com/sawai-naoki-portfolio)）。設計資料（要件定義書・画面定義書・設計書・テスト結果・UML 図）は [`Doc/`](Doc/README.md) にあります。
 >
 > | 項目 | 内容 |
@@ -182,7 +184,7 @@ lib/
 flutter --version   # 3.44.7 であることを確認
 flutter pub get
 flutter run
-flutter test        # 143 tests
+flutter test        # 143 tests（screenshots 用の 7 件は skip）
 flutter analyze
 ```
 
