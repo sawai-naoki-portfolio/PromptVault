@@ -1,0 +1,27 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pubspec.yaml / Doc/test-report.md と同じ Flutter バージョンに固定する。
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.7'
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter analyze
+
+      # スクリーンショット生成テストは dart_test.yaml で skip 指定されており、
+      # 通常実行では走らない（golden 比較は CI の合否に含めない）。
+      - run: flutter test --reporter expanded
