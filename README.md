@@ -184,7 +184,7 @@ lib/
 flutter --version   # 3.44.7 であることを確認
 flutter pub get
 flutter run
-flutter test        # 143 tests
+flutter test        # 143 tests（screenshots 用の 7 件は skip）
 flutter analyze
 ```
 

@@ -16,7 +16,7 @@
 ```bash
 flutter pub get
 flutter analyze
-flutter test                                                    # 143 件
+flutter test                                                    # 143 件（screenshots タグの 7 件は skip）
 flutter test --update-goldens --tags screenshots --run-skipped  # スクリーンショット再生成
 ```
 
@@ -53,7 +53,7 @@ flutter test --update-goldens --tags screenshots --run-skipped  # スクリー�
 
 | 項目 | 結果 |
 |---|---|
-| `flutter test` | 143 件（開発環境：Flutter 3.44.7 で実行） |
+| `flutter test` | 143 件 pass（GitHub Actions・Flutter 3.44.7、`flutter test --reporter expanded` の最終行 `+143 ~1: All tests passed!`）。`test/` の `test(`/`testWidgets(` は静的に数えて 150 件で、差の 7 件は `screenshots_test.dart`（`dart_test.yaml` で skip、スイート単位で `~1`） |
 | スクリーンショット | `test/screenshots_test.dart` で生成（本ドキュメントの `screenshots/`） |
 
 ## 5. 既知の課題
